@@ -278,6 +278,20 @@ function dataFrame(csvString, ops, dataFrameView){
 		return dataFrame(null, ops, view); 
 	}
 
+	self.values = function(){
+		var columns;
+		columns = this.columns.map(
+			function(c){
+				return this[c]
+			}
+		);
+		return range(this.nrow).map(
+			function(rw, i){
+				return columns.map(getFrom(rw))
+			}
+		)
+	}
+
 	return self 
 }
 
@@ -292,6 +306,7 @@ var df = dataFrame(csvStr);
 // console.log(df.nrow);
 // console.log(df.ncol); 
 console.log(df);
+console.log(df.values); 
 console.log(df.createView("a=4","b"))
 
 function unique(arr){

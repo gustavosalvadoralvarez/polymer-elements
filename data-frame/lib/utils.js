@@ -268,6 +268,20 @@ function dataFrame(csvString, ops, dataFrameView){
 		return dataFrame(null, ops, view); 
 	}
 
+	self.values = function(){
+		var columns;
+		columns = this.columns.map(
+			function(c){
+				return this[c]
+			}
+		);
+		return range(this.nrow).map(
+			function(rw, i){
+				return columns.map(getFrom(rw))
+			}
+		)
+	}
+
 	return self 
 }
 
