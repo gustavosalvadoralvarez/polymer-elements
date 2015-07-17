@@ -114,6 +114,17 @@ function stripInstanceMethods(o){
 	)
 }
 
+function propertyKeys(o){
+	return Object.keys(o).reduce(
+	function(ks, k){
+		if (!o[k].call){
+			ks = ks.concat(k)
+		}
+		return ks
+	},
+	[]
+}
+
 function loadInstanceMethods(fns){
 	var fnKeys;
 	fnKeys = Object.keys(fns);
@@ -152,37 +163,31 @@ function dCopy(o){
 	return JSON.parse(JSON.stringify(o))
 }
 
-function dataFrame(csvData, opts){
-	var self, instanceMethods, loadInstance;
-	opts = opts || {};
-	function transform(csvString){
+function dataFrame(csvData, dataFrameView){
+	var self, columns;
+	function extract(csvString){
 		var csvLines, headers, ncol, nrow;
 		csvLines = csvString.split("\n").map(invoke("split", ","));
 		ncol = csvLines[0].length;
 		nrow = csvLines.length;
-		if(!opts.noHeaders){
+		if(!ops.noHeaders){
 			headers = csvLines[0];
 			csvLines = csvLines.slice(1, ncol);
 		} else {
 			headers = range(ncol).map(String).map(function(v){ return "X."+v });
 		}
-		self.data = headers.reduce(
-			function(obj, col, oi){
-				obj[col] = csvLines.map(getFrom(oi));
-				return obj
+		return headers.reduce(
+			function(r, col, i){
+				r[col] = csvLines.map(getFrom(i));
+				return r
 			},
 			{}
 		);
-		self.ncol = ncol;
-		self.nrow = nrow; 
-		self.columns = headers; 
-		self.rows = range(0, nrow);
 	} 
-	function getRows(d, s, e, c){
-		var cols = c || Object.keys(d);
-		return cols.reduce(
-			function (r, col, i){
-				r[col] = d[col].slice(e, s);
+	function getRows(d, s, e){
+		return Object.keys(d).reduce(
+			function (r, cl, i){
+				r[cl] = d[cl].slice(e, s);
 				return r
 			},
 			{}
@@ -205,10 +210,12 @@ function dataFrame(csvData, opts){
 			keyCopy(d, Array)
 		)
 	}
-
-	self = ops.data || transform(); 
-
-	function createView(exps){
+	
+	self = dataFramView || extract(csvString);
+	self.columns = Object.keys(self);
+	self.nrow = self[columns[0]].length;
+	self.ncol = self.columns.length;
+	self.createView = function (exps){
 		// :: String, String || String
 		//
 		// if String, String, the first is interpreted as a 
@@ -219,13 +226,12 @@ function dataFrame(csvData, opts){
 		// second is returned.
 		// The second argument is interpreted as a column name or stringifyed array of column names
 		// if String, it is interpreted as a column argument
-		var args, view, rowExp, colExp, viewOps, isJSONArray;
-		args = asArray(arguments):
+		var args, view, rowExp, colExp, isJSONArray;
+		args = asArray(arguments);
 		rowExp = ((args.length > 2 && args[1]) || null); 
 		colExp = (rowExp && args[2]) || args[1]); 
 		isJSONArray = /(\[([\w]+,?)+\])/;
-		view = this;
-		viewOps = ops;
+		view = subsetKeys(this, this.columns);
 		if (typeof(colExp) === 'string'){
 			if (isJSONArray.test(colExp)) {
 				view = keySubset(view, JSON.parse(colExp));
@@ -237,7 +243,7 @@ function dataFrame(csvData, opts){
 		} 
 		if (rowExp){
 			if ("=" in rowExp){
-				var expParts, col, val, sval; 
+				var expParts, col, val; 
 				expParts = rowExp.split('='); 
 				col = expRows[0];
 				val = expRows[1];
@@ -252,103 +258,11 @@ function dataFrame(csvData, opts){
 				view = getRows(view, Number(expRows[1]), Number(expRows[2]));
 			}
 		} 
-
-		return view 
+		
+		return dataFrame(null, view); 
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	if (typeof(csvData) === String){
-		data = transform(csvString);
-	} else 
-	if(data && data.nrow > 0 && data.ncol > 0 ) {
-		self.data = data;
-	}else{
-		return new Error("Failed to parse or did not receive valid data: \n"+JSON.stringify(csvData));
-	}
-	self.view 
-
-
-
-}
-
-function csvParser(csvString, headers){
-	var lines = csvString.split('\n')
-		firstLine = lines[0].split(','),
-		csvKeys = headers !== false
-				? firstLine
-				: range(1, firstLine.length).map(function(i){ return 'X' + i }),
-		dataLines = headers !== false
-					? lines.slice(1)
-					: lines,
-		emptyLine = repeat(',', firstLine.length -1);
-			
-	return (
-	dataLines
-		.filter(
-			function checkEmpty(line){
-			return line.indexOf(emptyLine) === -1
-			}
-		)
-		.map(invoke('split', [',']))
-		.map(
-			function toObj(line){
-				return csvKeys.reduce(
-					function addKey(obj, k, i){
-						obj[k] = line[i];
-						return obj
-					}, 
-				{})
-			}
-		)
-	)
-}
-
-utils.csvParser = csvParser; 
-
-function csvRownum(csv){
-
+	return self 
 }
 
 function unique(arr){
@@ -361,44 +275,6 @@ function unique(arr){
 }
 
 utils.unique = unique; 
-
-
-function csvCol(csvList, colName){
-	return csvList.map(
-		function gather(line){
-			return line[colName]
-		}
-	)
-}
-
-utils.csvCol = csvCol; 
-
-
-function csvGroupBy(csv, groupColName){ 
-	var groupedObj = {}; 
-	groupedObj[groupColName] = unique(csvCol(csv, groupColName)).reduce(
-		function groupRows(grouped, group){
-			grouped[group] = csv.filter(
-				function groupMember(row){ 
-					return row[groupColName] === group 
-				}
-			).map(
-				function partialCopy(obj){
-					var copyObj = {}, k;
-					for (k in obj){
-						if (k !== groupColName) {
-							copyObj[k] = obj[k];
-						}
-					}
-					return copyObj
-				}
-			); 
-			return grouped
-		}, {}) 
-	return groupedObj
-}
-
-utils.csvGroupBy = csvGroupBy; 
 
 
 function closest(selector, el) {
