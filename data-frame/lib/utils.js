@@ -106,7 +106,7 @@ function stripInstanceMethods(o){
 			var v;
 			v = o[k];
 			if (!(v instanceof Function)){
-				r[k] + v; 
+				r[k] = v; 
 			}
 			return r
 		},
@@ -200,6 +200,7 @@ function dataFrame(csvData, opts){
 						}
 					);
 				}
+				return r
 			},
 			keyCopy(d, Array)
 		)
