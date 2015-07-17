@@ -74,8 +74,10 @@ utils.range = range;
 
 function labeledChild(obj, label){
 	var labelKey, labelVal, child; 
+	console.log(obj);
 	labelKey = label || 'label'; 
 	labelVal = Object.keys(obj)[0]; 
+	console.log(Object.keys(obj));
 	child = obj[labelVal]; 
 	child[labelKey] = labelVal; 
 	return child
@@ -140,6 +142,7 @@ function loadInstanceMethods(fns){
 function checkEquals(v){
 	if(Array.isArray(v)){
 		var inV = v.indexOf;
+		console.log(v)
 		return function (cv){
 			return cv in v
 		}
@@ -178,6 +181,7 @@ function dataFrame(csvString, ops, dataFrameView){
 		} else {
 			headers = range(ncol).map(String).map(function(v){ return "X."+v });
 		}
+		console.log(csvLines);
 		return headers.reduce(
 			function(r, col, i){
 				r[col] = csvLines.map(getFrom(i));
@@ -216,7 +220,7 @@ function dataFrame(csvString, ops, dataFrameView){
 	self.columns = columns = Object.keys(self);
 	self.nrow = self[columns[0]].length;
 	self.ncol = self.columns.length;
-	self.where = function (exps){
+	self.createView = function (exps){
 		// :: String, String || String
 		//
 		// if String, String, the first is interpreted as a 
@@ -229,11 +233,16 @@ function dataFrame(csvString, ops, dataFrameView){
 		// if String, it is interpreted as a column argument
 		var args, view, viewCols, rowExp, colExp, isJSONArray;
 		args = asArray(arguments);
+		console.log(args);
 		console.log(args.length);
 		rowExp = args.length > 1 ? args[0] : null; 
 		colExp = rowExp ? args[1] : args[0]; 
 		isJSONArray = /(\[([\w]+,?)+\])/;
 		view = keySubset(this, this.columns);
+		console.log(rowExp);
+		console.log(colExp);
+		console.log(isJSONArray.test(colExp));
+		console.log(view);
 		if (typeof(colExp) === 'string'){
 			if (isJSONArray.test(colExp)){
 				viewCols = JSON.parse(colExp);
@@ -245,6 +254,7 @@ function dataFrame(csvString, ops, dataFrameView){
 		} else {
 			viewCols = this.columns;
 		}
+		console.log(view);
 		if (rowExp){
 			if (rowExp.indexOf("=") > 0){
 				var expParts, col, val; 
@@ -271,8 +281,18 @@ function dataFrame(csvString, ops, dataFrameView){
 	return self 
 }
 
-utils.dataFrame = dataFrame;
-
+var csvStr = ("a,b,c\n" +
+			 "1,2,3\n" +
+			 "4,5,6");
+var df = dataFrame(csvStr);
+// console.log(df.columns);
+// console.log(df.a);
+// console.log(df.b);
+// console.log(df.c);
+// console.log(df.nrow);
+// console.log(df.ncol); 
+console.log(df);
+console.log(df.createView("a=4","b"))
 
 function unique(arr){
 	return Object.keys(arr.map(JSON.stringify).reduce(function findUunique(tmpObj, item){
