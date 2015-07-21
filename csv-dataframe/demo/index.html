@@ -12,25 +12,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-    <title>data-frame Demo</title>
+    <title>csv-dataframe Demo</title>
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
-    <link rel="import" href="../data-frame.html">
+    <link rel="import" href="../csv-dataframe.html">
   </head>
   <body>
+    <csv-dataframe>
+        <link rel="import" href="./Mexico.processed.csv"/>
+    </csv-dataframe>
 
-    <p>An example of <code>&lt;data-frame&gt;</code>:</p>
-
-    <button>Say Something</button>
-
-    <data-frame author='{"name": "Lord Meowser", "image": "http://placekitten.com/g/200/300"}' fancy>
-      <h2>Hello data-frame</h2>
-    </data-frame>
-
-    <script>
-      document.querySelector('button').addEventListener('click', function() {
-        alert(document.querySelector('data-frame').sayHello('Hallo!'));
-      });
-    </script>
 
   </body>
 </html>

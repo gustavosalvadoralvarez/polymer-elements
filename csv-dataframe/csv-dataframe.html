@@ -1,0 +1,125 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../polymer/polymer.html">
+<script src="./lib/utils.js"></script>
+
+<!--
+An element providing a solution to no problem in particular.
+
+Example:
+
+    <csv-dataframe></csv-dataframe>
+
+@demo
+-->
+<dom-module id="csv-dataframe">
+
+  <style>
+    :host {
+      display: block;
+      box-sizing: border-box;
+    }
+
+  </style>
+
+  <template>
+    <div class="content">
+      <content></content>
+    </div>
+  </template>
+
+</dom-module>
+
+<script>
+
+  Polymer({
+
+    is: 'csv-dataframe',
+
+    properties: {
+      _data:{
+        type: Object,
+        notify: true
+      },  
+      columns:{ 
+        type: Array
+      },
+      values:{
+        type: Array,
+        notify: true
+      }, 
+      dims:{
+        type: Array
+      },
+      view:{
+        type: Object
+      }
+    },
+
+    // Element Lifecycle
+
+    ready: function() {
+
+    },
+
+    attached: function() {
+      var self, csvStr; 
+      self = this; 
+            console.log(self.$$("LINK"));
+            console.log(self.querySelector("LINK").import.querySelector('BODY').textContent);
+      csvStr = self.querySelector("LINK").import.querySelector('BODY').textContent;
+
+      if (!csvStr){
+        throw new Error('No Valid CSV import found')
+        return
+      }
+      self._data = utils.dataFrame(csvStr); 
+    },
+
+    detached: function() {
+      // The analog to `attached`, `detached` fires when the element has been
+      // removed from a document.
+      //
+      // Use this to clean up anything you did in `attached`.
+    },
+
+    // Element Behavior
+
+    /**
+     * The `csv-dataframe-lasers` event is fired whenever `fireLasers` is called.
+     *
+     * @event csv-dataframe-lasers
+     * @detail {{sound: String}}
+     */
+
+    /**
+     * Sometimes it's just nice to say hi.
+     *
+     * @param {string} greeting A positive greeting.
+     * @return {string} The full greeting.
+     */
+    sayHello: function(greeting) {
+      var response = greeting || 'Hello World!';
+      return 'csv-dataframe says, ' + response;
+    },
+
+    /**
+     * Attempts to destroy this element's enemies with an any beam of light!
+     *
+     * Or, at least, dispatches an event in the vain hope that someone else will
+     * do the zapping.
+     */
+    fireLasers: function() {
+      this.fire('csv-dataframe-lasers', {sound: 'Pew pew!'});
+    }
+
+  });
+
+</script>
